@@ -33,7 +33,7 @@
 
 共有 $500000$ 条数据，每一列都表示一个信息。
 
-1. `Item Name` 项目名称。
+1. `Item Name` 项目名称（Unique）。
 2. `Item Class` 项目种类名称。
 3. `Item Price` 项目价格。
 4. `Item Retrieval City` 检索城市。
@@ -52,11 +52,11 @@
 17. `Item Import City` 项目进口城市。
 18. `Item Export Tax` 项目出口税。
 19. `Item Import Tax` 项目进口税。
-20. `Item Export Time` 项目出口时间。
-21. `Item Import Time` 项目进口时间。
-22. `Container Code` 集装箱编号（独特），当进口时间为EMPTY时为EMPTY。
+20. `Item Export Time` 项目出口时间，可为EMPTY。
+21. `Item Import Time` 项目进口时间，可为EMPTY。
+22. `Container Code` 集装箱编号（Unique），当进口时间为EMPTY时为EMPTY。
 23. `Container Type` 集装箱类型，当进口时间为EMPTY时为EMPTY。
-24. `Ship Name` 船只名称（独特），当出口时间为EMPTY时为EMPTY。
+24. `Ship Name` 船只名称（Unique），当出口时间为EMPTY时为EMPTY。
 25. `Company Name` 管理装运船只、检索快递员、寄送快递员的公司名称（独特）。
 26. `Log Time` 上次更新时间。
 
@@ -79,7 +79,7 @@
 
 使用截图或者绘图软件的矢量图形都可。
 
-请指出绘制图表的名称。
+请指出绘制图表所用工具的名称。
 
 ### 数据库设计 (25%)
 
