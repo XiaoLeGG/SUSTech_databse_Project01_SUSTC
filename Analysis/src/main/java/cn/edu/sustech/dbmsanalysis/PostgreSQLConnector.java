@@ -2,6 +2,7 @@ package cn.edu.sustech.dbmsanalysis;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class PostgreSQLConnector {
@@ -39,6 +40,14 @@ public class PostgreSQLConnector {
 		String url = "jdbc:postgresql://" + this.host + ":" + this.port + "/" + this.database;
 		conn = DriverManager.getConnection(url, this.user, this.password);
 		return conn != null;
+	}
+	
+	public boolean isConnected() {
+		return conn != null;
+	}
+	
+	public PreparedStatement prepareStatement(String s) throws SQLException {
+		return conn.prepareStatement(s);
 	}
 	
 }
