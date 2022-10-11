@@ -11,7 +11,7 @@
 
 1. `CS307-2022Fall_Project1.pdf` 项目要求（官方英文版）。
 2. `CS307-2022Fall_Project01_translation.md` 项目要求（中文翻译版）。
-3. `data.csv` 项目需要使用到的数据集（URL：https://sakai.sustech.edu.cn/access/content/group/89ba214b-5f13-4f70-86b1-0dc196565133/Project%20I/data.csv）
+3. `data.csv` 项目需要使用到的数据集（请到sakai上下载）
    
 
 ## 项目思路
