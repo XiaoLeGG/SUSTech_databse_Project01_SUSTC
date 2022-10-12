@@ -1,4 +1,4 @@
-package cn.edu.sustech.dbmsanalysis;
+package cn.edu.sustech.cs307.utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
