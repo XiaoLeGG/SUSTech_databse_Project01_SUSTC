@@ -10,13 +10,13 @@ create table import_information (
   id bigserial primary key,
   city varchar(32) not null,
   time date,
-  tax numeric(16, 7) not null
+  tax numeric(20, 7) not null
 );
 create table export_information (
   id bigserial primary key,
   city varchar(32) not null,
   time date,
-  tax numeric(16, 7) not null
+  tax numeric(20, 7) not null
 );
 create table delivery_courier (
   phone_number varchar(32) primary key,
@@ -27,8 +27,8 @@ create table delivery_courier (
 );
 create table delivery_information (
     id bigserial primary key,
-    name varchar(32) not null,
-    finish_time date not null,
+    city varchar(32) not null,
+    finish_time date,
     courier_phone_number varchar(32) references delivery_courier(phone_number)
 );
 create table retrieval_courier (
@@ -41,8 +41,8 @@ create table retrieval_courier (
 create table retrieval_information (
     id bigserial primary key,
     city varchar(32) not null,
-    time date not null,
-    courier_phone_number varchar(32) references retrieval_courier(phone_number)
+    start_time date not null,
+    courier_phone_number varchar(32) references retrieval_courier(phone_number) not null
 );
 create table item (
     name varchar(32) primary key,
