@@ -16,6 +16,7 @@ import java.util.List;
 import cn.edu.sustech.cs307.datamanager.DataManager;
 import cn.edu.sustech.cs307.datamanager.DataRecord;
 import cn.edu.sustech.cs307.datamanager.DataRecord.RecordAttribute;
+import cn.edu.sustech.cs307.datamanager.FastDataManager;
 import cn.edu.sustech.cs307.datamanager.SimpleDataManager;
 import cn.edu.sustech.cs307.utils.PostgreSQLConnector;
 
@@ -56,15 +57,16 @@ public class Main {
 				}
 			}
 			records.add(record);
+			
 			++total;
-			if (total % 100 == 0) {
+			if (total % 10000 == 0) {
 				debug("Successfully load " + total + " items from csv file...", false);
 			}
 		}
 		
 		debug("Successfully load all items from csv file, " + total + " in total...", false);
 		
-		DataManager dbManager = new SimpleDataManager(connector);
+		DataManager dbManager = new FastDataManager(connector);
 		dbManager.init(records);
 	}
 	

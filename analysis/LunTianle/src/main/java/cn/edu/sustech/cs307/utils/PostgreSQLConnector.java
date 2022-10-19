@@ -33,6 +33,14 @@ public class PostgreSQLConnector {
 		}
 	}
 	
+	public void setAutoCommit(boolean autoCommit) throws SQLException {
+		this.conn.setAutoCommit(autoCommit);
+	}
+	
+	public void commit() throws SQLException {
+		this.conn.commit();
+	}
+	
 	public boolean connect() throws SQLException {
 		if (!driverFound) {
 			return false;
