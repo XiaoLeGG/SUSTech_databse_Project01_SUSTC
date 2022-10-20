@@ -45,11 +45,7 @@ public class DataRecord {
 		CONTAINER_TYPE,
 		SHIP_NAME,
 		COMPANY_NAME,
-		LOG_TIME,
-		IMPORT_ID,
-		EXPORT_ID,
-		RETRIEVAL_ID,
-		DELIVERY_ID;
+		LOG_TIME;
 	}
 	
 }

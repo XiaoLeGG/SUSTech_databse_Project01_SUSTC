@@ -58,6 +58,7 @@ public class Main {
 			}
 			records.add(record);
 			
+			
 			++total;
 			if (total % 10000 == 0) {
 				debug("Successfully load " + total + " items from csv file...", false);

@@ -1,58 +1,54 @@
-create table container (
+create table if not exists container (
     code varchar(32) primary key,
     type varchar(32) not null
 );
-create table ship (
+create table if not exists ship (
     name varchar(32) primary key,
     company varchar(32) not null
 );
-create table import_information (
-  id bigserial primary key,
-  city varchar(32) not null,
-  time date,
-  tax numeric(20, 7) not null
-);
-create table export_information (
-  id bigserial primary key,
-  city varchar(32) not null,
-  time date,
-  tax numeric(20, 7) not null
-);
-create table delivery_courier (
-  phone_number varchar(32) primary key,
-  name varchar(32) not null,
-  gender char(1) not null,
-  age int not null,
-  company varchar(32) not null
-);
-create table delivery_information (
-    id bigserial primary key,
-    city varchar(32) not null,
-    finish_time date,
-    courier_phone_number varchar(32) references delivery_courier(phone_number)
-);
-create table retrieval_courier (
-  phone_number varchar(32) primary key,
-  name varchar(32) not null,
-  gender char(1) not null,
-  age int not null,
-  company varchar(32) not null
-);
-create table retrieval_information (
-    id bigserial primary key,
-    city varchar(32) not null,
-    start_time date not null,
-    courier_phone_number varchar(32) references retrieval_courier(phone_number) not null
-);
-create table item (
+create table if not exists item (
     name varchar(32) primary key,
     type varchar(32) not null,
     price int not null,
     container_code varchar(32) references container(code),
     ship_name varchar(32) references ship(name),
-    import_information_id int references import_information(id) not null,
-    export_information_id int references export_information(id) not null,
-    delivery_information_id int4 references delivery_information(id) not null,
-    retrieval_information_id int4 references retrieval_information(id) not null,
     log_time timestamp not null
+);
+create table if not exists import_information (
+  item varchar(32) primary key references item(name),
+  city varchar(32) not null,
+  time date,
+  tax numeric(20, 7) not null
+);
+create table if not exists export_information (
+  item varchar(32) primary key references item(name),
+  city varchar(32) not null,
+  time date,
+  tax numeric(20, 7) not null
+);
+create table if not exists delivery_courier (
+  phone_number varchar(32) primary key,
+  name varchar(32) not null,
+  gender char(1) not null,
+  age int not null,
+  company varchar(32) not null
+);
+create table if not exists delivery_information (
+    item varchar(32) primary key references item(name),
+    city varchar(32) not null,
+    finish_time date,
+    courier_phone_number varchar(32) references delivery_courier(phone_number)
+);
+create table if not exists retrieval_courier (
+  phone_number varchar(32) primary key,
+  name varchar(32) not null,
+  gender char(1) not null,
+  age int not null,
+  company varchar(32) not null
+);
+create table if not exists retrieval_information (
+    item varchar(32) primary key references item(name),
+    city varchar(32) not null,
+    start_time date not null,
+    courier_phone_number varchar(32) references retrieval_courier(phone_number) not null
 );
