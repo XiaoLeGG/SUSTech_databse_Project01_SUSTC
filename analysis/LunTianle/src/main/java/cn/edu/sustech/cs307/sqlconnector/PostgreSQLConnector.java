@@ -1,11 +1,11 @@
-package cn.edu.sustech.cs307.utils;
+package cn.edu.sustech.cs307.sqlconnector;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class PostgreSQLConnector {
+public class PostgreSQLConnector extends SQLConnector {
 	
 	private String host;
 	private int port;
