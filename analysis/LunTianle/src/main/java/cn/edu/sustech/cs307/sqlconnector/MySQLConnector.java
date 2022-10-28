@@ -6,8 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class PostgreSQLConnector extends SQLConnector {
-	
+public class MySQLConnector extends SQLConnector {
 	private String host;
 	private int port;
 	private String user;
@@ -16,7 +15,7 @@ public class PostgreSQLConnector extends SQLConnector {
 	private Connection conn;
 	private static boolean driverFound;
 	
-	public PostgreSQLConnector(String host, int port, String database, String user, String password) {
+	public MySQLConnector(String host, int port, String database, String user, String password) {
 		this.host = host;
 		this.port = port;
 		this.database = database;
@@ -26,7 +25,7 @@ public class PostgreSQLConnector extends SQLConnector {
 	
 	static {
 		try {
-			Class.forName("org.postgresql.Driver");
+			Class.forName("com.mysql.cj.jdbc.Driver");
 			driverFound = true;
 		} catch (Exception e) {
 			driverFound = false;
@@ -46,7 +45,7 @@ public class PostgreSQLConnector extends SQLConnector {
 		if (!driverFound) {
 			return false;
 		}
-		String url = "jdbc:postgresql://" + this.host + ":" + this.port + "/" + this.database;
+		String url = "jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database;
 		Properties properties = new Properties();
 		properties.setProperty("user", this.user);
 		properties.setProperty("password", this.password);
@@ -73,5 +72,4 @@ public class PostgreSQLConnector extends SQLConnector {
 	public Connection getConnection() {
 		return this.conn;
 	}
-	
 }

@@ -1,14 +1,16 @@
 package cn.edu.sustech.cs307.datamanager;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DataRecord {
 	
 	private Map<RecordAttribute, Object> recordMap;
 	
 	public DataRecord() {
-		this.recordMap = new HashMap<>();
+		this.recordMap = Collections.synchronizedMap(new HashMap<>());
 	}
 	
 	public Object getValue(RecordAttribute attribute) {

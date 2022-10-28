@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -23,8 +25,13 @@ import java.util.Properties;
 import cn.edu.sustech.cs307.datamanager.DataManager;
 import cn.edu.sustech.cs307.datamanager.DataRecord;
 import cn.edu.sustech.cs307.datamanager.DataRecord.RecordAttribute;
+import cn.edu.sustech.cs307.sqlconnector.MySQLConnector;
 import cn.edu.sustech.cs307.sqlconnector.PostgreSQLConnector;
+import cn.edu.sustech.cs307.sqlconnector.SQLConnector;
+import cn.edu.sustech.cs307.sqlconnector.SQLUtils;
 import cn.edu.sustech.cs307.datamanager.FastDataManager;
+import cn.edu.sustech.cs307.datamanager.FileDataManager;
+import cn.edu.sustech.cs307.datamanager.MultiThreadDataManager;
 import cn.edu.sustech.cs307.datamanager.SimpleDataManager;
 
 public class Main {
@@ -53,8 +60,14 @@ public class Main {
 		pmap.put("postgresql-user", "postgres");
 		pmap.put("postgresql-password", "123456");
 		pmap.put("postgresql-database", "database");
+		pmap.put("mysql-host", "localhost");
+		pmap.put("mysql-port", "3306");
+		pmap.put("mysql-user", "test");
+		pmap.put("mysql-password", "123456");
+		pmap.put("mysql-database", "cslab");
 		pmap.put("data-file-path", "G:\\data.csv");
-		pmap.put("table-maker-file-path", "G:\\table_maker.sql");
+		pmap.put("table-maker-file-path", "D:\\workspace-git\\SUSTech_databse_Project01_SUSTC\\sql\\table_maker.sql");
+		pmap.put("table-dropper-file-path", "D:\\workspace-git\\SUSTech_databse_Project01_SUSTC\\sql\\table_dropper.sql");
 		pmap.put("file-storage-directory", "G:\\CS307Project1");
 		
 		
@@ -77,26 +90,34 @@ public class Main {
 	}
 	
 	public static void main(String args[]) throws SQLException, IOException {
+		
 		writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
 		
 		loadConfig();
 		
-		String host = getProperty("postgresql-host");
-		int port = Integer.parseInt(getProperty("postgresql-port"));
-		String user = getProperty("postgresql-user");
-		String password = getProperty("postgresql-password");
-		String database = getProperty("postgresql-database");
+		List<DataRecord> records;
 		
-		connector = new PostgreSQLConnector(host, port, database, user, password);
-		if (connector.connect()) {
-			debug("Database Connected", false);
+		try {
+			records = loadRecords(new File(getProperty("data-file-path")));
+		} catch (FileNotFoundException e) {
+			Main.debug("Data file does not exists...", true);
+			return;
 		}
 		
-		File file = new File(getProperty("data-file-path"));
-		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+		debug("Successfully load all items from csv file, " + records.size() + " in total...", false);
+		SQLConnector mysql = SQLUtils.newPostgreSQLConnector();
+		mysql.connect();
+		PerformanceAnalysis.resetTable(mysql);
+		mysql.close();
+		DataManager dbManager = new MultiThreadDataManager(PostgreSQLConnector.class);
+		dbManager.init(records);
+	}
+	
+	public static List<DataRecord> loadRecords(File file) throws IOException {
+		BufferedReader reader;
+		reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
 		String titles[] = reader.readLine().substring(1).split(","); //Read Title Line
 		String line = null;
-		
 		List<DataRecord> records = new ArrayList<>();
 		int total = 0;
 		while ((line = reader.readLine()) != null) {
@@ -120,13 +141,10 @@ public class Main {
 				debug("Successfully load " + total + " items from csv file...", false);
 			}
 		}
-		
-		debug("Successfully load all items from csv file, " + total + " in total...", false);
-		
-		DataManager dbManager = new FastDataManager(connector);
-		dbManager.init(records);
+		reader.close();
+		return records;
 	}
-	
+
 	public static PostgreSQLConnector getSQLConnector() {
 		return connector;
 	}
