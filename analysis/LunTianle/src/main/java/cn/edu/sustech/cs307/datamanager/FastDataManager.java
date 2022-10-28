@@ -85,6 +85,7 @@ public class FastDataManager extends DataManager {
 	
 	protected void initShip(List<DataRecord> records, SQLConnector sqlConnector) throws SQLException {
 		PreparedStatement statement = sqlConnector.prepareStatement(shipSql);
+		int i = 0;
 		for (DataRecord record : records) {
 			String companyName = (String) record.getValue(RecordAttribute.COMPANY_NAME);
 			String shipName = (String) record.getValue(RecordAttribute.SHIP_NAME);
@@ -93,13 +94,18 @@ public class FastDataManager extends DataManager {
 				statement.setString(2, companyName);
 				statement.addBatch();
 				shipSet.add(shipName);
+				if ((++i) % 5000 == 0) {
+					statement.executeBatch();
+				}
 			}
+			
 		}
 		statement.executeBatch();
 	}
 	
 	protected void initCourier(List<DataRecord> records, SQLConnector sqlConnector) throws SQLException, NumberFormatException, ParseException {
 		PreparedStatement statement = sqlConnector.prepareStatement(courierSql);
+		int i = 0;
 		for (DataRecord record : records) {
 			// courier table
 			String companyName = (String) record.getValue(RecordAttribute.COMPANY_NAME);
@@ -113,6 +119,7 @@ public class FastDataManager extends DataManager {
 				statement.setString(5, companyName);
 				statement.addBatch();
 				courierSet.add(deliveryCPN);
+				++i;
 			}
 			String retrievalCPN = (String) record.getValue(RecordAttribute.RETRIEVAL_COURIER_PHONE_NUMBER);
 			if (!courierSet.contains(retrievalCPN)) {
@@ -124,6 +131,10 @@ public class FastDataManager extends DataManager {
 				statement.setString(5, companyName);
 				statement.addBatch();
 				courierSet.add(retrievalCPN);
+				++i;
+			}
+			if (i % 5000 == 0) {
+				statement.executeBatch();
 			}
 		}
 		CalendarUtils.removeThreadLocal();
@@ -132,6 +143,7 @@ public class FastDataManager extends DataManager {
 	
 	protected void initItem(List<DataRecord> records, SQLConnector sqlConnector) throws SQLException, ParseException {
 		PreparedStatement statement = sqlConnector.prepareStatement(itemSql);
+		int i = 0;
 		for (DataRecord record : records) {
 			// item table
 			String containerCode = (String) record.getValue(RecordAttribute.CONTAINER_CODE);
@@ -151,6 +163,9 @@ public class FastDataManager extends DataManager {
 			}
 			statement.setTimestamp(6, new Timestamp(timestampFormat.get().parse((String) record.getValue(RecordAttribute.LOG_TIME)).getTime()));
 			statement.addBatch();
+			if ((++i) % 5000 == 0) {
+				statement.executeBatch();
+			}
 		}
 		timestampFormat.remove();
 		statement.executeBatch();
@@ -158,6 +173,7 @@ public class FastDataManager extends DataManager {
 	
 	protected void initImportInformation(List<DataRecord> records, SQLConnector sqlConnector) throws SQLException, ParseException {
 		PreparedStatement statement = sqlConnector.prepareStatement(importSql);
+		int i = 0;
 		for (DataRecord record : records) {
 			// import_information table
 			String importCity = (String) record.getValue(RecordAttribute.ITEM_IMPORT_CITY);
@@ -172,6 +188,9 @@ public class FastDataManager extends DataManager {
 			}
 			statement.setBigDecimal(4, new BigDecimal(importTax));
 			statement.addBatch();
+			if ((++i) % 5000 == 0) {
+				statement.executeBatch();
+			}
 		}
 		dateFormat.remove();
 		statement.executeBatch();
@@ -179,6 +198,7 @@ public class FastDataManager extends DataManager {
 	
 	protected void initExportInformation(List<DataRecord> records, SQLConnector sqlConnector) throws SQLException, ParseException {
 		PreparedStatement statement = sqlConnector.prepareStatement(exportSql);
+		int i = 0;
 		for (DataRecord record : records) {
 			// export_information table
 			String exportCity = (String) record.getValue(RecordAttribute.ITEM_EXPORT_CITY);
@@ -193,6 +213,9 @@ public class FastDataManager extends DataManager {
 			}
 			statement.setBigDecimal(4, new BigDecimal(exportTax));
 			statement.addBatch();
+			if ((++i) % 5000 == 0) {
+				statement.executeBatch();
+			}
 		}
 		dateFormat.remove();
 		statement.executeBatch();
@@ -200,6 +223,7 @@ public class FastDataManager extends DataManager {
 	
 	protected void initDeliveryInformation(List<DataRecord> records, SQLConnector sqlConnector) throws SQLException, ParseException {
 		PreparedStatement statement = sqlConnector.prepareStatement(deliverySql);
+		int i = 0;
 		for (DataRecord record : records) {
 			// delivery_information table
 			String deliveryCPN = (String) record.getValue(RecordAttribute.DELIVERY_COURIER_PHONE_NUMBER);
@@ -218,6 +242,9 @@ public class FastDataManager extends DataManager {
 				statement.setNull(4, Types.VARCHAR);
 			}
 			statement.addBatch();
+			if ((++i) % 5000 == 0) {
+				statement.executeBatch();
+			}
 		}
 		dateFormat.remove();
 		statement.executeBatch();
@@ -225,6 +252,7 @@ public class FastDataManager extends DataManager {
 	
 	protected void initRetrievalInformation(List<DataRecord> records, SQLConnector sqlConnector) throws SQLException, ParseException {
 		PreparedStatement statement = sqlConnector.prepareStatement(retrievalSql);
+		int i = 0;
 		for (DataRecord record : records) {
 			// retrieval_information table
 			statement.setString(1, (String) record.getValue(RecordAttribute.ITEM_NAME));
@@ -233,6 +261,9 @@ public class FastDataManager extends DataManager {
 			statement.setDate(3, new Date(dateFormat.get().parse((String) record.getValue(RecordAttribute.RETRIEVAL_START_TIME)).getTime()));
 			statement.setString(4, (String) record.getValue(RecordAttribute.RETRIEVAL_COURIER_PHONE_NUMBER));
 			statement.addBatch();
+			if ((++i) % 5000 == 0) {
+				statement.executeBatch();
+			}
 		}
 		dateFormat.remove();
 		statement.executeBatch();

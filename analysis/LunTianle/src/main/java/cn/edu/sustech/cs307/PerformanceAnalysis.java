@@ -9,6 +9,7 @@ import java.util.List;
 
 import cn.edu.sustech.cs307.datamanager.DataRecord;
 import cn.edu.sustech.cs307.datamanager.FastDataManager;
+import cn.edu.sustech.cs307.datamanager.FileDataManager;
 import cn.edu.sustech.cs307.datamanager.SimpleDataManager;
 import cn.edu.sustech.cs307.sqlconnector.MySQLConnector;
 import cn.edu.sustech.cs307.sqlconnector.PostgreSQLConnector;
@@ -25,29 +26,54 @@ public class PerformanceAnalysis {
 		
 		PostgreSQLConnector psql = SQLUtils.newPostgreSQLConnector();
 		psql.connect();
-		for (int i = 0; i < 10; ++i) {
+		
+		for (int i = 0; i < 3; ++i) {
 			resetTable(psql);
 			long cost = testTime(() -> {
 				new SimpleDataManager(psql).init(records);
 			});
 			Main.debug("PostgreSQL SimpleDataManager Init Cost #" + i + ": " + cost + "ms", false);
 		}
-		for (int i = 0; i < 10; ++i) {
+		for (int i = 0; i < 3; ++i) {
 			resetTable(psql);
 			long cost = testTime(() -> {
 				new FastDataManager(psql).init(records);
 			});
 			Main.debug("PostgreSQL FastDataManager Init Cost #" + i + ": " + cost + "ms", false);
 		}
-		for (int i = 0; i < 10; ++i) {
+		for (int i = 0; i < 3; ++i) {
 			resetTable(psql);
 			long cost = testTime(() -> {
 				new FastDataManager(psql).init(records);
 			});
 			Main.debug("PostgreSQL MutilThreadDataManager Init Cost #" + i + ": " + cost + "ms", false);
 		}
+		for (int i = 0; i < 10; ++i) {
+			resetFile();
+			long cost = testTime(() -> {
+				new FileDataManager(new File(Main.getProperty("file-storage-directory"))).init(records);
+			});
+		}
 		
-		
+	}
+	
+	private static void deleteDirectory(File dir) {
+		if (!dir.exists()) {
+			return;
+		}
+		for (File file : dir.listFiles()) {
+			if (file.isDirectory()) {
+				deleteDirectory(file);
+			} else {
+				file.delete();
+			}
+		}
+		dir.delete();
+	}
+	
+	private static void resetFile() {
+		File dir = new File(Main.getProperty("file-storage-directory"));
+		deleteDirectory(dir);
 	}
 	
 	protected static long testTime(Runnable runnable) {

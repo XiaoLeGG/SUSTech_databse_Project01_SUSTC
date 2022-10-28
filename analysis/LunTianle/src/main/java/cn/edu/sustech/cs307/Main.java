@@ -48,6 +48,10 @@ public class Main {
 		writer.flush();
 	}
 	
+	public static void log(String msg) {
+		
+	}
+	
 	public static String getProperty(String key) {
 		return ppty.getProperty(key);
 	}
@@ -105,11 +109,12 @@ public class Main {
 		}
 		
 		debug("Successfully load all items from csv file, " + records.size() + " in total...", false);
-		SQLConnector mysql = SQLUtils.newPostgreSQLConnector();
+		SQLConnector mysql = SQLUtils.newMySQLConnector();
 		mysql.connect();
+		mysql.setAutoCommit(true);
 		PerformanceAnalysis.resetTable(mysql);
 		mysql.close();
-		DataManager dbManager = new MultiThreadDataManager(PostgreSQLConnector.class);
+		DataManager dbManager = new MultiThreadDataManager(MySQLConnector.class);
 		dbManager.init(records);
 	}
 	
