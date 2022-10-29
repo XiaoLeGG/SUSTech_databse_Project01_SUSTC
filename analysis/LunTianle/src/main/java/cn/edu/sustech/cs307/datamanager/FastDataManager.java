@@ -103,6 +103,110 @@ public class FastDataManager extends DataManager {
 		statement.executeBatch();
 	}
 	
+	public boolean deleteRetrievalInformationByItem(String item) {
+		try {
+			PreparedStatement statement = this.sqlConnector.prepareStatement("DELETE FROM retrieval_information WHERE item='" + item + "'");
+			statement.execute();
+			return true;
+		} catch (SQLException e) {
+			return false;
+		}
+	}
+	
+	public int deleteRetrievalInformationByCourier(String cpn) {
+		try {
+			PreparedStatement statement = this.sqlConnector.prepareStatement("DELETE FROM retrieval_information WHERE courier_phone_number='" + cpn + "'");
+			return statement.executeUpdate();
+		} catch (SQLException e) {
+			return -1;
+		}
+	}
+	
+	public boolean insertRetrievalInformation(DataRecord record) {
+		try {
+			PreparedStatement statement = this.sqlConnector.prepareStatement(retrievalSql);
+			statement.setString(1, (String) record.getValue(RecordAttribute.ITEM_NAME));
+			statement.setString(2, (String) record.getValue(RecordAttribute.RETRIEVAL_CITY));
+			
+			statement.setDate(3, new Date(dateFormat.get().parse((String) record.getValue(RecordAttribute.RETRIEVAL_START_TIME)).getTime()));
+			statement.setString(4, (String) record.getValue(RecordAttribute.RETRIEVAL_COURIER_PHONE_NUMBER));
+			dateFormat.remove();
+			return statement.execute();
+		} catch (SQLException | ParseException e) {
+			Main.debug("Inserting failed...", true);
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public boolean multiInsertRetrievalInformation(List<DataRecord> records) {
+		try {
+			this.sqlConnector.setAutoCommit(false);
+			this.initRetrievalInformation(records, this.sqlConnector);
+			this.sqlConnector.commit();
+			this.sqlConnector.setAutoCommit(true);
+			return true;
+		} catch (SQLException | ParseException e) {
+			Main.debug("Inserting failed...", true);
+			return false;
+		}
+	}
+	
+	public int selectRetrievalInformationByItem(String item) {
+		try {
+			PreparedStatement statement = this.sqlConnector.prepareStatement("SELECT * FROM retrieval_information WHERE item='" + item + "'");
+			return statement.executeQuery().getFetchSize();
+		} catch (SQLException e) {
+			Main.debug("Selecting failed...", true);
+			return -1;
+		}
+	}
+	
+	public int selectRetrievalInformationByCourier(String courierPN) {
+		try {
+			PreparedStatement statement = this.sqlConnector.prepareStatement("SELECT * FROM retrieval_information WHERE courier_phone_number='" + courierPN + "'");
+			return statement.executeQuery().getFetchSize();
+		} catch (SQLException e) {
+			Main.debug("Selecting failed...", true);
+			return -1;
+		}
+	}
+	
+	public int updateRetrievalCourierByItem(String item, String newCourierCPN) {
+		try {
+			PreparedStatement statement = this.sqlConnector.prepareStatement("UPDATE retrieval_information SET courier_phone_number='" + newCourierCPN + "' WHERE item='" + item + "'");
+			return statement.executeUpdate();
+		} catch (SQLException e) {
+			Main.debug("Updating failed...", true);
+			return -1;
+		}
+	}
+	
+	public int updateRetrievalCourierByCourier(String oldCourierPN, String newCourierPN) {
+		try {
+			PreparedStatement statement = this.sqlConnector.prepareStatement("UPDATE retrieval_information SET courier_phone_number='" + newCourierPN + "' WHERE courier_phone_number='" + oldCourierPN + "'");
+			return statement.executeUpdate();
+		} catch (SQLException e) {
+			Main.debug("Updating failed...", true);
+			return -1;
+		}
+	}
+	
+	public boolean addCourier(String company, String name, char gender, int birthYear, String pn) {
+		try {
+			PreparedStatement statement = this.sqlConnector.prepareStatement(courierSql);
+			statement.setString(1, pn);
+			statement.setString(2, name);
+			statement.setString(3, "" + gender);
+			statement.setInt(4, birthYear);
+			statement.setString(5, company);
+			return statement.execute();
+		} catch (SQLException e) {
+			Main.debug("Courier \"" + name + "\"adding failed...", true);
+			return false;
+		}
+	}
+	
 	protected void initCourier(List<DataRecord> records, SQLConnector sqlConnector) throws SQLException, NumberFormatException, ParseException {
 		PreparedStatement statement = sqlConnector.prepareStatement(courierSql);
 		int i = 0;

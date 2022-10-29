@@ -51,6 +51,7 @@ public class MySQLConnector extends SQLConnector {
 		properties.setProperty("password", this.password);
 		properties.setProperty("useSSL", "false");
 		properties.setProperty("autoReconnect", "true");
+		properties.setProperty("serverTimezone", "UTC");
 		properties.setProperty("rewriteBatchedStatements", "true");
 		conn = DriverManager.getConnection(url, properties);
 		return conn != null;

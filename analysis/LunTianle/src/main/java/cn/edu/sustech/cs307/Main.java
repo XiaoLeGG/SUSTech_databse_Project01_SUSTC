@@ -45,14 +45,14 @@ public class Main {
 	
 	public static void debug(String raw, boolean isWarnning) {
 		Calendar c = Calendar.getInstance();
-		String msg = String.format("[" + (!isWarnning ? "INFO" : "WARN") + "][%d/%d/%d %02d:%02d:%02d] %s", c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE), c.get(Calendar.HOUR), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), raw);
+		String msg = String.format("[" + (!isWarnning ? "INFO" : "WARN") + "][%d/%d/%d %02d:%02d:%02d] %s", c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1, c.get(Calendar.DATE), c.get(Calendar.HOUR), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), raw);
 		writer.println(msg);
 		writer.flush();
 	}
 	
 	public static void log(String raw) {
 		Calendar c = Calendar.getInstance();
-		String msg = String.format("[LOG][%d/%d/%d %02d:%02d:%02d] %s", c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE), c.get(Calendar.HOUR), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), raw);
+		String msg = String.format("[LOG][%d/%d/%d %02d:%02d:%02d] %s", c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1, c.get(Calendar.DATE), c.get(Calendar.HOUR), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), raw);
 		logger.append(msg + "\n");
 		writer.println(msg);
 		writer.flush();
@@ -105,7 +105,7 @@ public class Main {
 		
 		loadConfig();
 		
-		PerformanceAnalysis.initTest();
+		PerformanceAnalysis.allTest();
 		
 		File log = new File("log.text");
 		if (!log.exists()) {

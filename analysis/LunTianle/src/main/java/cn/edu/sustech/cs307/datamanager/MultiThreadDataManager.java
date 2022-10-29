@@ -32,7 +32,7 @@ public class MultiThreadDataManager extends FastDataManager {
 			connector.connect();
 			connector.setAutoCommit(false);
 			if (connector instanceof MySQLConnector) {
-				connector.prepareStatement("SET @FOREIGN_KEY_CHECKS=0");
+				connector.prepareStatement("SET @FOREIGN_KEY_CHECKS=0").execute();
 			} else {
 				connector.prepareStatement("ALTER TABLE item DISABLE TRIGGER ALL").execute();
 				connector.prepareStatement("ALTER TABLE import_information DISABLE TRIGGER ALL").execute();
@@ -141,7 +141,7 @@ public class MultiThreadDataManager extends FastDataManager {
 			exportThread.start();
 			latch.await();
 			if (connector instanceof MySQLConnector) {
-				connector.prepareStatement("SET @FOREIGN_KEY_CHECKS=1");
+				connector.prepareStatement("SET @FOREIGN_KEY_CHECKS=1").execute();
 			} else {
 				connector.prepareStatement("ALTER TABLE item ENABLE TRIGGER ALL").execute();
 				connector.prepareStatement("ALTER TABLE import_information ENABLE TRIGGER ALL").execute();

@@ -6,10 +6,16 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -31,6 +37,254 @@ public class FileDataManager extends DataManager {
 		shipSet = new HashSet<>();
 		containerSet = new HashSet<>();
 		
+	}
+	
+	public boolean deleteRetrievalInformationByItem(String item) {
+		try {
+			this.dir.mkdirs();
+			File retrievalInformationFile = new File(dir, "retrieval_information.json");
+			if (!retrievalInformationFile.exists()) {
+				try {
+					retrievalInformationFile.createNewFile();
+					JSONObject object = new JSONObject();
+					writeContentToFile(retrievalInformationFile, object.toJSONString());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			JSONObject retrievalInformation = JSONObject.parseObject(loadContentFromFile(retrievalInformationFile));
+			retrievalInformation.remove(item);
+			FileOutputStream out = new FileOutputStream(retrievalInformationFile);
+			out.write(retrievalInformation.toJSONString().getBytes());
+			out.close();
+			return true;
+		} catch (IOException e) {
+			Main.debug("File Deleting failed...", true);
+			return false;
+		}
+	}
+	
+	public int deleteRetrievalInformationByCourier(String cpn) {
+		try {
+			this.dir.mkdirs();
+			File retrievalInformationFile = new File(dir, "retrieval_information.json");
+			if (!retrievalInformationFile.exists()) {
+				try {
+					retrievalInformationFile.createNewFile();
+					JSONObject object = new JSONObject();
+					writeContentToFile(retrievalInformationFile, object.toJSONString());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			JSONObject retrievalInformation = JSONObject.parseObject(loadContentFromFile(retrievalInformationFile));
+			List<String> removeList = new ArrayList<>();
+			for (Map.Entry<String, Object> entry : retrievalInformation.entrySet()) {
+				JSONObject object = (JSONObject) entry.getValue();
+				if (object.getString("courier_phone_number").equals(cpn)) {
+					removeList.add(entry.getKey());
+				}
+			}
+			for (String key : removeList) {
+				retrievalInformation.remove(key);
+			}
+			FileOutputStream out = new FileOutputStream(retrievalInformationFile);
+			out.write(retrievalInformation.toJSONString().getBytes());
+			out.close();
+			return removeList.size();
+		} catch (IOException e) {
+			Main.debug("File Deleting failed...", true);
+			return -1;
+		}
+	}
+	
+	public boolean insertRetrievalInformation(DataRecord record) {
+		try {
+			this.dir.mkdirs();
+			File retrievalInformationFile = new File(dir, "retrieval_information.json");
+			if (!retrievalInformationFile.exists()) {
+				try {
+					retrievalInformationFile.createNewFile();
+					JSONObject object = new JSONObject();
+					writeContentToFile(retrievalInformationFile, object.toJSONString());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			JSONObject retrievalInformation = JSONObject.parseObject(loadContentFromFile(retrievalInformationFile));
+			JSONObject rinfObject = new JSONObject();
+			rinfObject.put("city", (String) record.getValue(RecordAttribute.RETRIEVAL_CITY));
+			rinfObject.put("start_time", (String) record.getValue(RecordAttribute.RETRIEVAL_START_TIME));
+			rinfObject.put("courier_phone_number", (String) record.getValue(RecordAttribute.RETRIEVAL_COURIER_PHONE_NUMBER));
+			retrievalInformation.put((String) record.getValue(RecordAttribute.ITEM_NAME), rinfObject);
+			FileOutputStream out = new FileOutputStream(retrievalInformationFile);
+			out.write(retrievalInformation.toJSONString().getBytes());
+			out.close();
+			return true;
+		} catch (IOException e) {
+			Main.debug("File Inserting failed...", true);
+			return false;
+		}
+	}
+	
+	public boolean multiInsertRetrievalInformation(List<DataRecord> records) {
+		try {
+			this.dir.mkdirs();
+			File retrievalInformationFile = new File(dir, "retrieval_information.json");
+			if (!retrievalInformationFile.exists()) {
+				try {
+					retrievalInformationFile.createNewFile();
+					JSONObject object = new JSONObject();
+					writeContentToFile(retrievalInformationFile, object.toJSONString());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			JSONObject retrievalInformation = JSONObject.parseObject(loadContentFromFile(retrievalInformationFile));
+			for (DataRecord record : records) {
+				JSONObject rinfObject = new JSONObject();
+				rinfObject.put("city", (String) record.getValue(RecordAttribute.RETRIEVAL_CITY));
+				rinfObject.put("start_time", (String) record.getValue(RecordAttribute.RETRIEVAL_START_TIME));
+				rinfObject.put("courier_phone_number", (String) record.getValue(RecordAttribute.RETRIEVAL_COURIER_PHONE_NUMBER));
+				retrievalInformation.put((String) record.getValue(RecordAttribute.ITEM_NAME), rinfObject);
+			}
+			FileOutputStream out = new FileOutputStream(retrievalInformationFile);
+			out.write(retrievalInformation.toJSONString().getBytes());
+			out.close();
+			return true;
+		} catch (IOException e) {
+			Main.debug("File Inserting failed...", true);
+			return false;
+		}
+	}
+	
+	public int selectRetrievalInformationByItem(String item) {
+		this.dir.mkdirs();
+		File retrievalInformationFile = new File(dir, "retrieval_information.json");
+		if (!retrievalInformationFile.exists()) {
+			try {
+				retrievalInformationFile.createNewFile();
+				JSONObject object = new JSONObject();
+				writeContentToFile(retrievalInformationFile, object.toJSONString());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		JSONObject retrievalInformation = JSONObject.parseObject(loadContentFromFile(retrievalInformationFile));
+		return (retrievalInformation.containsKey(item) ? 1 : 0);
+	}
+	
+	public int selectRetrievalInformationByCourier(String courierCPN) {
+		this.dir.mkdirs();
+		File retrievalInformationFile = new File(dir, "retrieval_information.json");
+		if (!retrievalInformationFile.exists()) {
+			try {
+				retrievalInformationFile.createNewFile();
+				JSONObject object = new JSONObject();
+				writeContentToFile(retrievalInformationFile, object.toJSONString());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		JSONObject retrievalInformation = JSONObject.parseObject(loadContentFromFile(retrievalInformationFile));
+		List<String> selectList = new ArrayList<>();
+		for (Map.Entry<String, Object> entry : retrievalInformation.entrySet()) {
+			JSONObject object = (JSONObject) entry.getValue();
+			if (object.getString("courier_phone_number").equals(courierCPN)) {
+				selectList.add(entry.getKey());
+			}
+		}
+		return selectList.size();
+	}
+	
+	public int updateRetrievalCourierByItem(String item, String newCourierPN) {
+		try {
+			this.dir.mkdirs();
+			File retrievalInformationFile = new File(dir, "retrieval_information.json");
+			if (!retrievalInformationFile.exists()) {
+				try {
+					retrievalInformationFile.createNewFile();
+					JSONObject object = new JSONObject();
+					writeContentToFile(retrievalInformationFile, object.toJSONString());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			JSONObject retrievalInformation = JSONObject.parseObject(loadContentFromFile(retrievalInformationFile));
+			JSONObject object = retrievalInformation.getJSONObject(item);
+			object.put("courier_phone_number", newCourierPN);
+			retrievalInformation.put(item, object);
+			FileOutputStream out = new FileOutputStream(retrievalInformationFile);
+			out.write(retrievalInformation.toJSONString().getBytes());
+			out.close();
+			return 1;
+		} catch (IOException e) {
+			Main.debug("Updating failed...", true);
+			return -1;
+		}
+	}
+	
+	public int updateRetrievalCourierByCourier(String oldCourierPN, String newCourierPN) {
+		try {
+			this.dir.mkdirs();
+			File retrievalInformationFile = new File(dir, "retrieval_information.json");
+			if (!retrievalInformationFile.exists()) {
+				try {
+					retrievalInformationFile.createNewFile();
+					JSONObject object = new JSONObject();
+					writeContentToFile(retrievalInformationFile, object.toJSONString());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			JSONObject retrievalInformation = JSONObject.parseObject(loadContentFromFile(retrievalInformationFile));
+			int cnt = 0;
+			for (Map.Entry<String, Object> entry : retrievalInformation.entrySet()) {
+				JSONObject object = (JSONObject) entry.getValue();
+				if (object.getString("courier_phone_number").equals(oldCourierPN)) {
+					object.put("courier_phone_number", newCourierPN);
+					++cnt;
+				}
+				retrievalInformation.put(entry.getKey(), object);
+			}
+			FileOutputStream out = new FileOutputStream(retrievalInformationFile);
+			out.write(retrievalInformation.toJSONString().getBytes());
+			out.close();
+			return cnt;
+		} catch (IOException e) {
+			Main.debug("Updating failed...", true);
+			return -1;
+		}
+	}
+	
+	public boolean addCourier(String company, String name, char gender, int birthYear, String pn) {
+		try {
+			this.dir.mkdirs();
+			File courierFile = new File(dir, "courier.json");
+			if (!courierFile.exists()) {
+				try {
+					courierFile.createNewFile();
+					JSONObject object = new JSONObject();
+					writeContentToFile(courierFile, object.toJSONString());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			JSONObject courier = JSONObject.parseObject(loadContentFromFile(courierFile));
+			JSONObject object = new JSONObject();
+			object.put("company", company);
+			object.put("gender", gender);
+			object.put("birth_year", birthYear);
+			object.put("name", name);
+			courier.put(pn, object);
+			FileOutputStream out = new FileOutputStream(courierFile);
+			out.write(courier.toJSONString().getBytes());
+			out.close();
+			return true;
+		} catch (IOException e) {
+			Main.debug("Courier \"" + name + "\"adding failed...", true);
+			return false;	
+		}
 	}
 	
 	@Override
@@ -186,6 +440,28 @@ public class FileDataManager extends DataManager {
 			FileOutputStream out = new FileOutputStream(containerFile);
 			out.write(container.toJSONString().getBytes());
 			out.close();
+			out = new FileOutputStream(shipFile);
+			out.write(ship.toJSONString().getBytes());
+			out.close();
+			out = new FileOutputStream(courierFile);
+			out.write(courier.toJSONString().getBytes());
+			out.close();
+			out = new FileOutputStream(itemFile);
+			out.write(item.toJSONString().getBytes());
+			out.close();
+			out = new FileOutputStream(importInformationFile);
+			out.write(importInformation.toJSONString().getBytes());
+			out.close();
+			out = new FileOutputStream(exportInformationFile);
+			out.write(exportInformation.toJSONString().getBytes());
+			out.close();
+			out = new FileOutputStream(retrievalInformationFile);
+			out.write(retrievalInformation.toJSONString().getBytes());
+			out.close();
+			out = new FileOutputStream(deliveryInformationFile);
+			out.write(deliveryInformation.toJSONString().getBytes());
+			out.close();
+			
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -195,13 +471,13 @@ public class FileDataManager extends DataManager {
 		}
 	}
 	
-	private static void writeContentToFile(File file, String content) throws IOException {
+	public static void writeContentToFile(File file, String content) throws IOException {
 		FileOutputStream stream = new FileOutputStream(file);
 		stream.write(content.getBytes());
 		stream.close();
 	}
 	
-	private static String loadContentFromFile(File file) {
+	public static String loadContentFromFile(File file) {
 		byte[] fileContent = new byte[((Long) file.length()).intValue()];
 		try {
 			FileInputStream in = new FileInputStream(file);

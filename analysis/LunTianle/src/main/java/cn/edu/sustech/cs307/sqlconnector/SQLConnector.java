@@ -14,4 +14,5 @@ public abstract class SQLConnector {
 	public abstract void close() throws SQLException;
 	public abstract Connection getConnection();
 	
+	
 }
