@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -38,6 +39,7 @@ public class Main {
 	
 	private static PostgreSQLConnector connector;
 	private static PrintWriter writer;
+	private static StringBuilder logger = new StringBuilder();
 	private static Properties ppty;
 	
 	
@@ -48,8 +50,12 @@ public class Main {
 		writer.flush();
 	}
 	
-	public static void log(String msg) {
-		
+	public static void log(String raw) {
+		Calendar c = Calendar.getInstance();
+		String msg = String.format("[LOG][%d/%d/%d %02d:%02d:%02d] %s", c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE), c.get(Calendar.HOUR), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), raw);
+		logger.append(msg + "\n");
+		writer.println(msg);
+		writer.flush();
 	}
 	
 	public static String getProperty(String key) {
@@ -99,23 +105,16 @@ public class Main {
 		
 		loadConfig();
 		
-		List<DataRecord> records;
+		PerformanceAnalysis.initTest();
 		
-		try {
-			records = loadRecords(new File(getProperty("data-file-path")));
-		} catch (FileNotFoundException e) {
-			Main.debug("Data file does not exists...", true);
-			return;
+		File log = new File("log.text");
+		if (!log.exists()) {
+			log.createNewFile();
 		}
-		
-		debug("Successfully load all items from csv file, " + records.size() + " in total...", false);
-		SQLConnector mysql = SQLUtils.newMySQLConnector();
-		mysql.connect();
-		mysql.setAutoCommit(true);
-		PerformanceAnalysis.resetTable(mysql);
-		mysql.close();
-		DataManager dbManager = new MultiThreadDataManager(MySQLConnector.class);
-		dbManager.init(records);
+		FileWriter writer = new FileWriter(log);
+		writer.write(logger.toString());
+		writer.flush();
+		writer.close();
 	}
 	
 	public static List<DataRecord> loadRecords(File file) throws IOException {

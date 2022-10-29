@@ -19,11 +19,12 @@ import java.util.List;
 import cn.edu.sustech.cs307.Main;
 import cn.edu.sustech.cs307.datamanager.DataRecord.RecordAttribute;
 import cn.edu.sustech.cs307.sqlconnector.PostgreSQLConnector;
+import cn.edu.sustech.cs307.sqlconnector.SQLConnector;
 import cn.edu.sustech.cs307.utils.CalendarUtils;
 
 public class SimpleDataManager extends DataManager {
 	
-	private PostgreSQLConnector sqlConnector;
+	private SQLConnector sqlConnector;
 	private boolean debug = true;
 	private HashSet<String> shipSet;
 	private HashSet<String> containerSet;
@@ -39,7 +40,7 @@ public class SimpleDataManager extends DataManager {
 	private static final String itemSql = "INSERT INTO item(name, type, price, container_code, ship_name, log_time) VALUES(?, ?, ?, ?, ?, ?)";
 	private static final String courierSql = "INSERT INTO courier(phone_number, name, gender, birth_year, company) VALUES(?, ?, ?, ?, ?)";
 	
-	public SimpleDataManager(PostgreSQLConnector sqlConnector) {
+	public SimpleDataManager(SQLConnector sqlConnector) {
 		this.sqlConnector = sqlConnector;
 		shipSet = new HashSet<>();
 		containerSet = new HashSet<>();
@@ -49,13 +50,15 @@ public class SimpleDataManager extends DataManager {
 	@Override
 	public void init(List<DataRecord> records) {
 		int i = 0;
+		double average = 0;
 		for (DataRecord record : records) {
+			long start = System.currentTimeMillis();
 			try {
 				String companyName = (String) record.getValue(RecordAttribute.COMPANY_NAME);
 				
 				//container table
 				String containerCode = (String) record.getValue(RecordAttribute.CONTAINER_CODE);
-				if (containerCode != null && !containerSet.add(containerCode)) {
+				if (containerCode != null && !containerSet.contains(containerCode)) {
 					PreparedStatement statement = this.sqlConnector.prepareStatement(containerSql);
 					statement.setString(1, containerCode);
 					statement.setString(2, (String) record.getValue(RecordAttribute.CONTAINER_TYPE));
@@ -71,7 +74,8 @@ public class SimpleDataManager extends DataManager {
 					statement.setString(2, companyName);
 					statement.execute();
 					shipSet.add(shipName);
-				}	
+				}
+				
 				//item table
 				PreparedStatement statement = sqlConnector.prepareStatement(itemSql);
 				statement.setString(1, (String) record.getValue(RecordAttribute.ITEM_NAME));
@@ -88,6 +92,7 @@ public class SimpleDataManager extends DataManager {
 					statement.setNull(5, Types.VARCHAR);
 				}
 				statement.setTimestamp(6, new Timestamp(timestampFormat.parse((String) record.getValue(RecordAttribute.LOG_TIME)).getTime()));
+				statement.execute();
 				
 				//import_information table
 				String importCity = (String) record.getValue(RecordAttribute.ITEM_IMPORT_CITY);
@@ -151,7 +156,6 @@ public class SimpleDataManager extends DataManager {
 				}
 				statement.execute();
 
-				
 				//retrieval_courier table
 				String retrievalCPN = (String) record.getValue(RecordAttribute.RETRIEVAL_COURIER_PHONE_NUMBER);
 				if (!courierSet.contains(retrievalCPN)) {
@@ -178,6 +182,10 @@ public class SimpleDataManager extends DataManager {
 				e.printStackTrace();
 			}
 			++i;
+//			average = (average * (i - 1) + (System.currentTimeMillis() - start)) / i;
+//			if (i % 1000 == 0) {
+//				Main.log("SimpleDataManager average cost: " + String.format("%.6f", average) + "ms");
+//			}
 			if (debug && i % 10000 == 0) {
 				Main.debug("Successfully import " + i + " items...", false);
 			}

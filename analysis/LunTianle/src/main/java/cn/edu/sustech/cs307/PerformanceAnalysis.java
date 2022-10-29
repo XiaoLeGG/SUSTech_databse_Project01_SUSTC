@@ -5,11 +5,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import cn.edu.sustech.cs307.datamanager.DataRecord;
 import cn.edu.sustech.cs307.datamanager.FastDataManager;
 import cn.edu.sustech.cs307.datamanager.FileDataManager;
+import cn.edu.sustech.cs307.datamanager.MultiThreadDataManager;
 import cn.edu.sustech.cs307.datamanager.SimpleDataManager;
 import cn.edu.sustech.cs307.sqlconnector.MySQLConnector;
 import cn.edu.sustech.cs307.sqlconnector.PostgreSQLConnector;
@@ -20,40 +22,77 @@ public class PerformanceAnalysis {
 	
 	protected static void initTest() throws IOException, SQLException {
 		
-		List<DataRecord> records = Main.loadRecords(new File(Main.getProperty("data-file-path")));
-		
+		List<DataRecord> raw = Main.loadRecords(new File(Main.getProperty("data-file-path")));
+		List<DataRecord> records = new ArrayList<>();
+		records.addAll(raw.subList(0, 10));
+		records.addAll(raw.subList(100000, 100010));
+		records.addAll(raw.subList(200000, 200010));
+		records.addAll(raw.subList(300000, 300010));
+		records.addAll(raw.subList(400000, 400010));
 		//PostgreSQL part
 		
 		PostgreSQLConnector psql = SQLUtils.newPostgreSQLConnector();
 		psql.connect();
+		psql.setAutoCommit(true);
 		
 		for (int i = 0; i < 3; ++i) {
 			resetTable(psql);
 			long cost = testTime(() -> {
 				new SimpleDataManager(psql).init(records);
 			});
-			Main.debug("PostgreSQL SimpleDataManager Init Cost #" + i + ": " + cost + "ms", false);
+			Main.log("PostgreSQL SimpleDataManager " + records.size() + " Records Init Cost #" + i + ": " + cost + "ms");
 		}
 		for (int i = 0; i < 3; ++i) {
 			resetTable(psql);
 			long cost = testTime(() -> {
 				new FastDataManager(psql).init(records);
 			});
-			Main.debug("PostgreSQL FastDataManager Init Cost #" + i + ": " + cost + "ms", false);
+			Main.log("PostgreSQL FastDataManager " + records.size() + " Records Init Cost #" + i + ": " + cost + "ms");
 		}
 		for (int i = 0; i < 3; ++i) {
 			resetTable(psql);
 			long cost = testTime(() -> {
-				new FastDataManager(psql).init(records);
+				new MultiThreadDataManager(PostgreSQLConnector.class).init(records);
 			});
-			Main.debug("PostgreSQL MutilThreadDataManager Init Cost #" + i + ": " + cost + "ms", false);
+			Main.log("PostgreSQL MutilThreadDataManager " + records.size() + " Records Init Cost #" + i + ": " + cost + "ms");
 		}
-		for (int i = 0; i < 10; ++i) {
+		
+		//MySQL part
+		MySQLConnector msql = SQLUtils.newMySQLConnector();
+		msql.connect();
+		msql.setAutoCommit(true);
+		
+		for (int i = 0; i < 3; ++i) {
+			resetTable(msql);
+			long cost = testTime(() -> {
+				new FastDataManager(msql).init(records);
+			});
+			Main.log("MySQL FastDataManager " + records.size() + " Records Init Cost #" + i + ": " + cost + "ms");
+		}
+		
+		for (int i = 0; i < 3; ++i) {
+			resetTable(msql);
+			long cost = testTime(() -> {
+				new MultiThreadDataManager(MySQLConnector.class).init(records);
+			});
+			Main.log("MySQL MutilThreadDataManager " + records.size() + " Records Init Cost #" + i + ": " + cost + "ms");
+		}
+		
+		for (int i = 0; i < 3; ++i) {
 			resetFile();
 			long cost = testTime(() -> {
 				new FileDataManager(new File(Main.getProperty("file-storage-directory"))).init(records);
 			});
+			Main.log("FileIO " + records.size() + " Records Init Cost #" + i +": " + cost + "ms");
 		}
+		
+//		for (int i = 0; i < 3; ++i) {
+//			resetTable(msql);
+//			long cost = testTime(() -> {
+//				new SimpleDataManager(msql).init(records);
+//			});
+//			Main.log("MySQL SimpleDataManager " + records.size() + " Records Init Cost #" + i + ": " + cost + "ms");
+//		}
 		
 	}
 	
@@ -104,6 +143,17 @@ public class PerformanceAnalysis {
 		File dropper = new File(Main.getProperty("table-dropper-file-path"));
 		executeSQLFile(connector, dropper);
 		executeSQLFile(connector, maker);
+		if (connector instanceof MySQLConnector) {
+			connector.prepareStatement("ALTER TABLE container ENGINE = InnoDB").execute();
+			connector.prepareStatement("ALTER TABLE courier ENGINE = InnoDB").execute();
+			connector.prepareStatement("ALTER TABLE ship ENGINE = InnoDB").execute();
+			connector.prepareStatement("ALTER TABLE item ENGINE = InnoDB").execute();
+			connector.prepareStatement("ALTER TABLE import_information ENGINE = InnoDB").execute();
+			connector.prepareStatement("ALTER TABLE export_information ENGINE = InnoDB").execute();
+			connector.prepareStatement("ALTER TABLE delivery_information ENGINE = InnoDB").execute();
+			connector.prepareStatement("ALTER TABLE retrieval_information ENGINE = InnoDB").execute();
+			
+		}
 	}
 	
 }

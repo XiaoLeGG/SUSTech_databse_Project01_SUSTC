@@ -28,7 +28,7 @@ import cn.edu.sustech.cs307.utils.CalendarUtils;
 
 public class FastDataManager extends DataManager {
 
-	private PostgreSQLConnector sqlConnector;
+	private SQLConnector sqlConnector;
 	private boolean debug = true;
 	private HashSet<String> shipSet;
 	private HashSet<String> containerSet;
@@ -56,7 +56,7 @@ public class FastDataManager extends DataManager {
         }
     };
 	
-	public FastDataManager(PostgreSQLConnector sqlConnector) {
+	public FastDataManager(SQLConnector sqlConnector) {
 		this.sqlConnector = sqlConnector;
 		shipSet = new HashSet<>();
 		containerSet = new HashSet<>();
